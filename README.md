@@ -1,5 +1,5 @@
 # ColloidalStatMech
-Interactive, web-based illustrations for exploring statistical mechanical concepts in colloidal physics, based on research at Harvard. Try it here: http://jeswcollins.github.io/ColloidalStatMech/.
+ColloidalStatMech provides interactive, web-based illustrations for exploring statistical mechanical concepts in colloidal physics, based on research at Harvard. Try it here: http://jeswcollins.github.io/ColloidalStatMech/.
 
 Colloidal particles that can be visualized with an optical microscope, but which are small enough that they are brownian, provide unique opportunities for experimental tests of statistical mechanics.
 
