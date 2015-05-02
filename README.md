@@ -7,7 +7,7 @@ Research by Guangnan Meng, Natalie Arkus, Vinny Manoharan and Michael Brenner ex
 
 To understand and explain the concepts that emerged from this work, I've made an interactive visualization of identical vs. n-component, highly specific particles (http://jeswcollins.github.io/ColloidalStatMech/)
 
-Illustrations from this interactive visualization below also appear [here](http://dash.harvard.edu/handle/1/12274201).
+The illustrations below came from the interactive visualization, and originally were published [here](http://dash.harvard.edu/handle/1/12274201).
 
 ![Identical Particles](images/ns.png)
 
