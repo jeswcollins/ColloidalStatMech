@@ -7,8 +7,8 @@ Research by Guangnan Meng, Natalie Arkus, Vinny Manoharan and Michael Brenner ex
 
 To understand and explain the concepts that emerged from this work, I've made an interactive visualization of identical vs. n-component, highly specific particles.
 
-##Example Images:
-The illustrations below came from the interactive visualization, and originally were published [here](http://dash.harvard.edu/handle/1/12274201).
+##Interactive "Swapping" Visualization
+Illustrations originally were published [here](http://dash.harvard.edu/handle/1/12274201).
 
 ![Identical Particles](images/ns.png)
 
@@ -16,9 +16,9 @@ The illustrations below came from the interactive visualization, and originally 
 ![N-component, highly specific particles](images/s.png)
 
 
-Brownian Motion Simulation
+##Brownian Motion Simulation
 
-<em>To Do</em>
+#To Do
 <li>Add Adjustable Temperature</li>
 <li>Add Specificity</li>
 <li>Add Adjustable Specificity</li>
