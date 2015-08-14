@@ -19,9 +19,9 @@ This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https:/
 ![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
 
 **To Do**
-<li>Add Adjustable Temperature</li>
-<li>Add Specificity</li>
-<li>Add Adjustable Specificity</li>
+<li>Add adjustable temperature</li>
+<li>Add specificity</li>
+<li>Make specificity adjustable</li>
 <li>Add placing and swapping spheres on clicks</li>
 
 #Background
