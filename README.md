@@ -14,3 +14,13 @@ The illustrations below came from the interactive visualization, and originally 
 
 
 ![N-component, highly specific particles](images/s.png)
+
+
+Brownian Motion Simulation
+
+-To Do
+<li>Add Adjustable Temperature</li>
+<li>Add Specificity</li>
+<li>Add Adjustable Specificity</li>
+
+![In-browser Brownian Motion Simulation](images/vis_sim.png)
