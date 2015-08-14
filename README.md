@@ -18,9 +18,9 @@ The illustrations below came from the interactive visualization, and originally 
 
 Brownian Motion Simulation
 
--To Do
+<em>To Do</em>
 <li>Add Adjustable Temperature</li>
 <li>Add Specificity</li>
 <li>Add Adjustable Specificity</li>
 
-![In-browser Brownian Motion Simulation](images/vis_sim.png)
+![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
