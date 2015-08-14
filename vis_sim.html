@@ -1,0 +1,534 @@
+﻿<!--<!DOCTYPE html>-->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1/EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<html>
+
+<head>
+    <title>SVG Animation - Bouncing Ball Arena</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" /> <!-- Remove this comment only if you have issues rendering this page on an intranet site. -->
+    <style>
+        body {
+            background-color: #fff; /*#AAA The background color that surrounds the ball arena. */
+        }
+    </style>
+</head>
+
+<body>
+    <div style="text-align: center">
+        <div style=" margin-bottom: 8px;">
+            <button id="toggleButton" type="button" onclick="toggleAnim();">Start</button> <!-- This button functions as a Start and Stop button. -->
+        </div>
+        <!--<svg id="svgElement" width="800px" height="800px" viewBox="0 0 800 800">-->
+        <svg id="svgElement" xmlns="http://www.w3.org/2000/svg" version="1.1" width="800px" height="800px" viewBox="0 0 800 800">
+            <!-- 1024 x 768 is a safe assumed monitor size. -->
+            <g id="coordinateFrame" transform="translate(400, 400)">
+                <circle id="arena" cx="0" cy="0" r="198" style="fill: white; stroke: black; stroke-width: 3;" /> <!-- The r="398" leaves a little room for the arena border. -->
+                <!-- Ball circle elements are appended here via JavaScript. -->
+            </g>
+        </svg>
+    </div>
+    <script>
+        "use strict";
+
+        window.addEventListener('load', initWindow, false); // Execute the initWindow function just after the page loads.
+
+        /* --- CONSTANTS ----------------------------------------------------------------------------------------- */
+
+        var constants = {
+            delay: 10, // The delay between animation stills, in milliseconds. This affects animation smoothness.
+            numBalls: 20, // The number of balls to animate. Don't go above about 12 circles.
+            ballStrokeColor: "#444", // The color the border for all balls (less the arena).
+            //epsilon: 1, // Coefficient of restitution. 1 means a perfectly elastic collision (rock hard superballs), 0 means a perfectly inelastic collision (super sticky clay balls).
+            randomSpeedRange: 200, // In pixels per second. The x and y-components of the velocity vectors for the balls will be randomly chosen and be between -constant.randomSpeedRange and +constants.randomSpeedRange.
+            minRadius: 10, // The minimum radius for the randomly sized ball.
+            maxRadius: 10, // The maximum radius for the randomly sized ball.
+            step: 10  //step size
+        };
+        //square well constants
+        var well = {
+            h: 100, //kT hardcore repulsive barrier
+            d: -10, //kT well depth
+            w: .1 //attraction width as percent of object size
+        }
+
+        /* -- GLOBALS -------------------------------------------------------------------------------------------- */
+
+        var arena; // Manages the arena animation functionality and collection of balls
+        /* --- my FUNCTIONS ---------------------------------------------------------------------------------- */
+        
+        function SquareWell(x, hcd1, hcd2, w1, w2, d)
+            /*Defined by width w, height h, and depth d. Returns h if interparticle distance, x, is less than total hard core distance hdc1+hdc2; 
+            d if x*/ {//if (x<=hcd1+hcd2)//in practice similar to .isOverlapping
+            //return h;
+            if (x > hcd1 + hcd2 && x < hcd1 + hcd1 + w1 + w2)
+                return d;
+            if (x >= hcd1 + hcd2 + w1 + w2)
+                return 0;
+        }
+
+        /* --- VECTOR FUNCTIONS ---------------------------------------------------------------------------------- */
+
+        function Point(x_coordinate, y_coordinate)
+            /*
+              Create a point object, which represents a point in the xy-plane.
+            */ {
+            this.x = x_coordinate;
+            this.y = y_coordinate;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+       
+        function Vector(x_component, y_component)
+            /*
+              Creates a generic 2D vector object, which could be a position vector, a velocity, an acceleration, etc.
+            */ {
+            this.xc = x_component; // "xc" stands for the x-component of the generic vector.
+            this.yc = y_component; // "yc" stands for the y-component of the generic vector.
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Vector.prototype.add = function (that)
+            /*
+              Adds the two vectors and returns the vector result.
+            */ {
+            var gv = new Vector(0, 0); // "gv" stands for "generic vector".
+
+            gv.xc = this.xc + that.xc;
+            gv.yc = this.yc + that.yc;
+
+            return gv;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Vector.prototype.diff = function (that)
+            /*
+              Subtracts the two vectors (i.e., this - that) and returns the vector result.
+            */ {
+            var gv = new Vector(0, 0); // "gv" stands for "generic vector".
+
+            gv.xc = this.xc - that.xc;
+            gv.yc = this.yc - that.yc;
+
+            return gv;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Vector.prototype.multi = function (s)
+            /*
+              Multiplies the scale "s" with the vector and returns the vector result.
+            */ {
+            var gv = new Vector(0, 0); // "gv" stands for "generic vector".
+
+            gv.xc = s * this.xc;
+            gv.yc = s * this.yc;
+
+            return gv;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Vector.prototype.dot = function (that)
+            /*
+              Returns the dot product of the vectors and returns the scalar result.
+            */ {
+            return (this.xc * that.xc) + (this.yc * that.yc);
+        }
+
+        /* --- HELPER FUNCTIONS ---------------------------------------------------------------------------------- */
+
+        function svgSupported()
+            /*
+              Returns true if the browser supports HTML5 with inline SVG, false otherwise. Assumes that the root SVG
+              element has an ID value of "svgElement".
+            */ {
+            var svgElement = document.getElementById("svgElement"); // Required for Mozilla, this line not necessary for IE9 or Chrome.
+
+            return svgElement.namespaceURI == "http://www.w3.org/2000/svg";
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        function getRandomInteger(min, max)
+            /*
+              Inclusively returns a random integer between min and max. Assumes min < max (min and max need not be
+              integers nor positive).
+
+              As an example, if min = -4 and max = 3, then the returned random value is between -4 and 3. Likewise, if
+              min = -4.1 and max = 3.1, then the returned random value is between -5 and 4.
+            */ {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        function getRandomReal(min, max)
+            /*
+              Returns a random real number x such that min <= x < max. Assumes min < max (min and max need not be
+              positive). Note that the returned random value can be very close to max but it will never equal max.
+            */ {
+            return Math.random() * (max - min) + min;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        function getRandomColor()
+            /*
+              Returns and RBG color value string, as in "rgb(120, 70, 255)". Stay away from overly dark and light
+              colors. That is, we avoid RGB values below 30 (i.e., too dark) and RGB values above 230 (i.e., too light).
+            */ {
+            var randomColor1 = getRandomInteger(30, 230); // Generates a random integer between 30 and 230.
+            var randomColor2 = getRandomInteger(30, 230);
+            var randomColor3 = getRandomInteger(30, 230);
+
+            return "rgb(" + randomColor1 + ", " + randomColor2 + ", " + randomColor3 + ")";
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        /* -- BALL HELPER FUNCTIONS ------------------------------------------------------------------------------ */
+
+        function ball_cx(ball)
+            /*
+              Returns the x-coordinate of the center of the given ball.
+            */ {
+            return ball.cx.baseVal.value;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        function ball_cy(ball)
+            /*
+              Returns the y-coordinate of the center of the given ball.
+            */ {
+            return ball.cy.baseVal.value;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        function ball_r(ball)
+            /*
+              Returns the radius of the given ball.
+            */ {
+            return ball.r.baseVal.value;
+        }
+
+        /* -- BALL PROTOTYPES ------------------------------------------------------------------------------------ */
+
+        SVGCircleElement.prototype.dx = function (that)
+            /*
+              Returns the distance between the two x-coordinates of the ball centers.
+            */ {
+            return ball_cx(this) - ball_cx(that);
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SVGCircleElement.U = 0; // Each ball has an energy U associated with it.  U is the sum of all the bonds the particle participates in
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+
+        SVGCircleElement.prototype.dy = function (that)
+            /*
+              Returns the distance between the two y-coordinates of the ball centers.
+            */ {
+            return ball_cy(this) - ball_cy(that);
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SVGCircleElement.prototype.d = function (that)
+            /*
+              Returns the distance between (the centers) of the two balls.
+            */ {
+            return Math.sqrt(this.dx(that) * this.dx(that) + this.dy(that) * this.dy(that)); // The distance between the center points of both balls, using the classic distance-between-two-points formula (for 2D points).
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SVGCircleElement.prototype.move = function ()
+            /*
+              Moves this ball across the screen via random walk.
+            */ {
+            this.cx.baseVal.value += (Math.random()-.5)*constants.step; // Given the x-component of the ball's velocity vector, make the ball move in the x-direction.
+            this.cy.baseVal.value += (Math.random()-.5)*constants.step; // Given the y-component of the ball's velocity vector, make the ball move in the y-direction.
+        }
+
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SVGCircleElement.prototype.isOverlapping = function (that)
+            /*
+              Returns true if this ball is touching or overlapping "that" ball.
+            */ {
+            var d = this.d(that); // The distance between the center points of both balls.
+
+            if (this.i == that.i) // True if both balls are the same ball - just a safety measure here.
+                return (false);
+
+            return d <= (ball_r(this) + ball_r(that)); // Draw this out on paper and it'll make sense.
+        }
+        
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+
+        /* -- BALL FUNCTIONS ------------------------------------------------------------------------------------- */
+
+        function getRandomBallRadius()
+            /*
+              Returns a random ball radius between constants.minRadius and constants.maxRadius.
+            */ {
+            return getRandomInteger(constants.minRadius, constants.maxRadius);
+        }
+
+        /* -- ARENA FUNCTIONS ------------------------------------------------------------------------------------- */
+
+        function Arena(id) {
+            // PUBLIC
+            this.balls = new Array();
+            this.arena_radius = ball_r(document.getElementById(id));
+            this.frame = document.getElementById('coordinateFrame');
+            this.requestAnimationFrameID = 0;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.stopAnimation = function ()
+            /*
+            Cancel the animation frame request to stop this invocation (and thus the animation).
+          */ {
+            window.cancelAnimationFrame(this.requestAnimationFrameID);
+        }
+
+        Arena.prototype.runAnimation = function ()
+            /*
+            Start the animation.
+            */ {
+            var that = this; // To preserve the correct "this" pointer in the callback function, pass this as an argument.
+            this.requestAnimationFrameID = window.requestAnimationFrame(function () { that.doAnim() });
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.doAnim = function (that)
+            /*
+            This function will be invoked by the browser until the animation is cancelled.
+            */ {
+            for (var i = 0; i < this.balls.length; i++) {
+                var ball = this.balls[i];
+                var cx = ball_cx(ball);
+                var cy = ball_cy(ball);
+                ball.move(); // Move the ball by a small amount.
+                if (this.detectArenaCollision(ball))
+                {
+                    ball.cx.baseVal.value = cx;
+                    ball.cy.baseVal.value = cy;
+                }
+                else {
+                    this.processBallCollisionsEnergy(ball,cx,cy)
+                }
+                //this.processArenaCollision(ball); // If this ball has collided with the arena wall, change the direction of the ball.
+                //; // If this ball has collided with another, change the direction of both.
+               
+            }
+            var that = this; // Preserves the correct "this" pointer.
+            this.requestAnimationFrameID = window.requestAnimationFrame(function () { that.doAnim() });
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.getRandomBallPosition = function (ballRadius)
+            /*
+              Returns a random x-coordinate and y-coordinate such that a circle of radius ballRadius would be contained
+              within the arena radius. We use polar coordinates since it significantly simplifies the mathematics, that
+              is x = r*cos(theta) and y = r*sin(theta).
+            */ {
+            var allowableRandomRadius = getRandomInteger(0, this.arena_radius - ballRadius); // The max possible value returned is arena_radius - ballRadius.
+            var randomTheta = getRandomReal(0, 2 * Math.PI); // Get a random angle, in radians, between 0 and 2Pi (i.e., 360 degrees).
+
+            var p = new Point(0, 0); // Create a point object of the form p.x and p.y
+            p.x = allowableRandomRadius * Math.cos(randomTheta); // An allowable x-coordinate for a circle of radius ballRadius such that said circle will be contained within an arena of radius r.
+            p.y = allowableRandomRadius * Math.sin(randomTheta); // An allowable y-coordinate for a circle of radius ballRadius such that said circle will be contained within an arena of radius r.
+
+            return p; // Returns a point object (as in point.x and point.y).
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.processBallCollisionsEnergy = function (ball, cx, cy) {
+            var U = 0;//Energy
+            //console.log(ball.U);
+            for (var i = 0; i < this.balls.length; i++) {
+                if (i == ball.i)
+                    continue; // Don't bother to see if the ball has collided with itself - a waste of processing time.
+
+                var d = ball.d(this.balls[i]); // The distance between the center points of both balls.
+                if (d <= (ball_r(this.balls[i]) + ball_r(ball))) {//if ball overlaps another ball, cancel the move (return ball to where it started) and break loop
+                    //if (ball.isOverlapping(this.balls[i]))
+                    ball.cx.baseVal.value = cx;
+                    ball.cy.baseVal.value = cy;
+                    return;
+                }
+                else {//calculate Energy
+                    U = U + SquareWell(d, ball_r(this.balls[i]), ball_r(ball), ball_r(this.balls[i]) * well.w, ball_r(ball) * well.w, well.d)//SquareWell(ball)
+                }
+            }
+            if (U <= ball.U) {
+                ball.U = U;//store new energy value.  keep ball position change
+                return;
+            }
+            /*else {*/
+            if (U > ball.U) {//reject position change
+                ball.cx.baseVal.value = cx;
+                ball.cy.baseVal.value = cy;
+            }
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.detectArenaCollision = function (ball)
+            /*
+              Returns true if the given ball has struck the arena wall, false otherwise.
+            */ {
+            var cx = ball_cx(ball); // The x-coordinate for the center of the ball.
+            var cy = ball_cy(ball); // The y-coordinate for the center of the ball.
+            var d = Math.sqrt(cx * cx + cy * cy); // The distance from the arena's center (i.e., origin) to the ball's center.
+            var r = ball_r(ball); // The radius of the ball.
+
+            return (d + r) >= this.arena_radius; // If the distnace between the ball's center plus its radius is >= to the radius of the arena, then we have a ball-arena collision.
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.processArenaCollision = function (ball)
+            /*
+              Detects if a ball hits the arena wall and if so, changes the ball's direction appropriately. The key
+              equation for vector reflection is v2 = v1 - 2(v1 dot n)n. See http://mathworld.wolfram.com/Reflection.html
+              for details.
+
+              With respect to the vector equation v2 = v1 - 2(v1 dot n)n, let s = 2(v1 dot n). Thus, the equation becomes
+              v2 = v1 - s*n. This form will be used in the following:
+            */ {
+            if (this.detectArenaCollision(ball)) {
+                return;
+            }
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.createBallElements = function ()
+            /*
+              This creates all the ball elements (i.e., circle elements) along with a number of custom properties, and
+              places them within an array.
+            */ {
+            var p; // Recieves a point object, representing a point in the xy-plane.
+            var ballElement; // Recieves a <circle> element.
+
+            for (var i = 0; i < constants.numBalls; i++) // Can't use balls.length because this array hasn't been created yet.
+            {
+                ballElement = document.createElementNS("http://www.w3.org/2000/svg", "circle"); // Create a "ball" element.
+
+                ballElement.i = i; // A customer property, each ball should know its index array value.
+                ballElement.id = "ball" + i; // Each ball must have a unique DOM id value.
+                ballElement.U = 0;
+
+                ballElement.r.baseVal.value = getRandomBallRadius(); // The radius of the ball.
+
+                p = this.getRandomBallPosition(ball_r(ballElement)); // For this function, the radius of a ball is needed to make sure that the ball is contained within the arena.
+                ballElement.cx.baseVal.value = p.x;
+                ballElement.cy.baseVal.value = p.y;
+
+                ballElement.style.fill = getRandomColor();
+                ballElement.style.stroke = constants.ballStrokeColor;
+
+                this.balls[i] = ballElement;
+            }
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.positionBallsInArena = function ()
+            /*
+              Before the balls are appended to the DOM, this randomly arranges the balls within the arena such that
+              none of the balls overlap.
+            */ {
+            var overlap = false; // Assume that none of the balls physically overlap.
+            var length = this.balls.length;
+
+            do // Make sure that none of the balls physically overlap within the arena (using an inelegant brute force algorithm)
+            {
+                overlap = false; // Reset the value for each iteration of the loop.
+                for (var i = 0; (i < length) && !overlap; i++) {
+                    var ballA = this.balls[i];
+                    for (var j = 0; (j < length) && !overlap; j++) {
+                        if (i == j)
+                            continue; // Breaks the current loop and continues with the next j value.
+
+                        if (ballA.isOverlapping(this.balls[j])) {
+                            var point = this.getRandomBallPosition(ball_r(ballA)); // Returns an object representing a 2D point.
+                            ballA.cx.baseVal.value = point.x;
+                            ballA.cy.baseVal.value = point.y;
+                            overlap = true;
+                        }
+                    } // Inner "j" FOR loop.
+                } // Outer "i" FOR loop.
+            } while (overlap);
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.appendBallElementsToDOM = function ()
+            /*
+              Takes the array of ball elements and appends them to the DOM, thus rendering them on the screen. These
+              balls are now ready for the Start button to be clicked.
+            */ {
+            for (var i = 0; i < this.balls.length; i++)
+                this.frame.appendChild(this.balls[i]);
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        Arena.prototype.initialize = function ()
+            /*
+              Create ball elements, position the balls, and render them.
+            */ {
+            this.createBallElements(); // Create all ball elements and add custom properties to these elements as well.
+            this.positionBallsInArena(); // Position the balls in the circular arena such that none of them overlap.
+            this.appendBallElementsToDOM(); // This renders the balls on screen, ready for the Start button to be clicked.
+        }
+
+        /* -- HTML INTERFACE FUNCTIONS -------------------------------------------------------------------------------- */
+
+        function initWindow() {
+            if (!svgSupported()) {
+                alert("Inline SVG in HTML5 is not supported. This document requires a browser that supports HTML5 and inline SVG.");
+                return;
+            }
+
+            arena = new Arena("arena");
+            arena.initialize();
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        function toggleAnim()
+            /*
+              The Start/Stop button has been clicked.
+            */ {
+            var toggleButton = document.getElementById("toggleButton"); // Required for Mozilla, this line not necessary for IE9 or Chrome.
+
+            toggleButton.clicked = !toggleButton.clicked; // Initially undefined, this makes it true. Then this toggles between true and false on each call.
+
+            if (toggleButton.clicked)
+                arena.runAnimation();
+            else
+                arena.stopAnimation();
+
+            toggleButton.innerHTML = (toggleButton.clicked ? "Stop" : "Start"); // Toggle the text on the Start/Stop button appropriately.
+        }
+    </script>
+</body>
+</html>
