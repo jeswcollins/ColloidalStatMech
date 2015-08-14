@@ -22,6 +22,7 @@ This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https:/
 <li>Add Adjustable Temperature</li>
 <li>Add Specificity</li>
 <li>Add Adjustable Specificity</li>
+<li>Add placing and swapping spheres on clicks</li>
 
 #Background
 
