@@ -20,7 +20,7 @@ The illustrations below originally were published [here](http://dash.harvard.edu
 <li>Make mobile friendly</li>
 
 #Brownian Motion Simulation
-
+This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https://msdn.microsoft.com/en-us/library/gg193985(v=vs.85).aspx)
 ![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
 
 **To Do**
