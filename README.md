@@ -19,6 +19,7 @@ This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https:/
 ![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
 
 **To Do**
+<li>Fix bug that results in singlet particles not diffusing</li>
 <li>Add adjustable temperature</li>
 <li>Add specificity</li>
 <li>Make specificity adjustable</li>
