@@ -1,7 +1,7 @@
 # ColloidalStatMech
 ColloidalStatMech provides interactive, web-based illustrations for exploring statistical mechanical concepts in colloidal physics, based on research at Harvard. Try it here: http://jeswcollins.github.io/ColloidalStatMech/.
 
-#Interactive "Swapping" Visualization
+#[Interactive "Swapping" Visualization](http://jeswcollins.github.io/ColloidalStatMech/)
 These illustrations from the "swapping" javascript code originally were published [here](http://dash.harvard.edu/handle/1/12274201).
 
 ![Identical Particles](images/ns.png)
@@ -13,7 +13,7 @@ These illustrations from the "swapping" javascript code originally were publishe
 <li>Make modular</li>
 <li>Make mobile friendly</li>
 
-#Brownian Motion Simulation
+#[Brownian Motion Simulation](http://jeswcollins.github.io/ColloidalStatMech/vis_sim.html)
 This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https://msdn.microsoft.com/en-us/library/gg193985(v=vs.85).aspx)
 
 ![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
