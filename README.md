@@ -9,7 +9,7 @@ These illustrations from the "swapping" javascript code originally were publishe
 
 ![N-component, highly specific particles](images/s.png)
 
-###**To Do**
+###**To Do:**
 <li>Make modular</li>
 <li>Make mobile friendly</li>
 
@@ -18,7 +18,7 @@ This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https:/
 
 ![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
 
-###**To Do**
+###**To Do:**
 <li>Fix bug that results in singlet particles not diffusing</li>
 <li>Add adjustable temperature</li>
 <li>Add specificity</li>
