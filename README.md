@@ -1,7 +1,7 @@
 # ColloidalStatMech
 ColloidalStatMech provides interactive, web-based illustrations for exploring statistical mechanical concepts in colloidal physics, based on research at Harvard. Try it here: http://jeswcollins.github.io/ColloidalStatMech/.
 
-#[Interactive "Swapping" Visualization](http://jeswcollins.github.io/ColloidalStatMech/)
+#[Interactive Particle Swapping Visualization](http://jeswcollins.github.io/ColloidalStatMech/)
 These illustrations from the "swapping" javascript code originally were published [here](http://dash.harvard.edu/handle/1/12274201).
 
 ![Identical Particles](images/ns.png)
