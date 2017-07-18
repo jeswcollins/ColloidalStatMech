@@ -1,27 +1,29 @@
 # ColloidalStatMech
-ColloidalStatMech provides interactive, web-based illustrations for exploring statistical mechanical concepts in colloidal physics, based on research at Harvard. Try it here: http://jeswcollins.github.io/ColloidalStatMech/.
+ColloidalStatMech provides interactive, web-based illustrations for exploring statistical mechanical concepts in colloidal physics, based on research at Harvard. Try it here: http://jeswcollins.github.io/ColloidalStatMech/. Please feel free to contribute, question, or criticize.
 
-#Interactive "Swapping" Visualization
-The illustrations below originally were published [here](http://dash.harvard.edu/handle/1/12274201).
+#[Interactive Particle Swapping Visualization](http://jeswcollins.github.io/ColloidalStatMech/)
+These illustrations from the "swapping" javascript code originally were published [here](http://dash.harvard.edu/handle/1/12274201).
 
 ![Identical Particles](images/ns.png)
 
 
 ![N-component, highly specific particles](images/s.png)
 
-**To Do**
+###**To Do:**
 <li>Make modular</li>
 <li>Make mobile friendly</li>
 
-#Brownian Motion Simulation
+#[Brownian Motion Simulation](http://jeswcollins.github.io/ColloidalStatMech/vis_sim.html)
 This code builds off from [MSDN's Intermediate SVG javascript tutorial.](https://msdn.microsoft.com/en-us/library/gg193985(v=vs.85).aspx)
 
 ![In-browser Brownian Motion Simulation](images/vis_sim.PNG)
 
-**To Do**
-<li>Add Adjustable Temperature</li>
-<li>Add Specificity</li>
-<li>Add Adjustable Specificity</li>
+###**To Do:**
+<li>Fix bug that results in singlet particles not diffusing</li>
+<li>Add adjustable temperature</li>
+<li>Add specificity</li>
+<li>Make specificity adjustable</li>
+<li>Add placing and swapping spheres on clicks</li>
 
 #Background
 
