@@ -364,7 +364,7 @@
                                 bondElement.id = spheres[i].id + ',' + spheres[j].id;
                                 bondElement.style.stroke = 'red';
                                 bondElement.setAttribute("stroke-width", 1.5);
-				bondElement.setAttribute("stroke-dasharray",5);
+				bondElement.setAttribute("stroke-dasharray",0);
                                 bondElement.x1.baseVal.value = spheres[i].cx.baseVal.value;
                                 bondElement.y1.baseVal.value = spheres[i].cy.baseVal.value;
                                 bondElement.x2.baseVal.value = spheres[j].cx.baseVal.value;
